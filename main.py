@@ -57,8 +57,8 @@ flags.DEFINE_integer('cluster_layer_2', -1, 'number of clusters in the third lay
 
 ## Logging, saving, and testing options
 flags.DEFINE_bool('log', True, 'if false, do not log summaries, for debugging code.')
-flags.DEFINE_string('logdir', '/tmp/data', 'directory for summaries and checkpoints.')
-flags.DEFINE_string('datadir', '/home/huaxiuyao/Data/', 'directory for datasets.')
+flags.DEFINE_string('logdir', './tmp/data', 'directory for summaries and checkpoints.')
+flags.DEFINE_string('datadir', '/data/bjk_data', 'directory for datasets.')
 flags.DEFINE_bool('resume', True, 'resume training if there is a model available')
 flags.DEFINE_bool('train', True, 'True to train, False to test.')
 flags.DEFINE_bool('test_set', False, 'Set to true to test on the the test set, False for the validation set.')
@@ -67,7 +67,7 @@ flags.DEFINE_integer('train_update_batch_size', -1,
 flags.DEFINE_float('train_update_lr', -1,
                    'value of inner gradient step step during training. (use if you want to test with a different value)')  # 0.1 for omniglot
 
-
+print("main.py")
 def train(model, saver, sess, exp_string, data_generator, resume_itr=0):
     SUMMARY_INTERVAL = 100
     SAVE_INTERVAL = 1000
@@ -169,7 +169,7 @@ def train(model, saver, sess, exp_string, data_generator, resume_itr=0):
     saver.save(sess, FLAGS.logdir + '/' + exp_string + '/model' + str(itr))
 
 
-if FLAGS.datasource in ['multidataset', 'multidataset_leave_one_out', 'mixture']:
+if FLAGS.datasource in ['multidataset', 'multidataset_leave_one_out', 'mixture', 'CDFSL']:
     NUM_TEST_POINTS = FLAGS.num_test_task
 
 
@@ -217,8 +217,8 @@ def test(model, saver, sess, exp_string, data_generator, test_num_updates=None):
 
 
 def main():
-
-    if FLAGS.datasource == 'multidataset_leave_one_out':
+    print("Main method")
+    if FLAGS.datasource in ['multidataset_leave_one_out', 'CDFSL']:
         assert FLAGS.leave_one_out_id > -1
 
     sess = tf.InteractiveSession()
@@ -228,7 +228,7 @@ def main():
         else:
             test_num_updates = 10
     else:
-        if FLAGS.datasource in ['miniimagenet', 'multidataset', 'multidataset_leave_one_out']:
+        if FLAGS.datasource in ['miniimagenet', 'multidataset', 'multidataset_leave_one_out', 'CDFSL']:
             if FLAGS.train == True:
                 test_num_updates = 1  # eval on at least one update during training
             else:
@@ -240,16 +240,16 @@ def main():
         orig_meta_batch_size = FLAGS.meta_batch_size
         # always use meta batch size of 1 when testing.
         FLAGS.meta_batch_size = 1
-
+    print("Start data_generator")
     if FLAGS.datasource in ['sinusoid', 'mixture']:
         data_generator = DataGenerator(FLAGS.update_batch_size + FLAGS.update_batch_size_eval, FLAGS.meta_batch_size)
     else:
-        if FLAGS.metatrain_iterations == 0 and FLAGS.datasource in ['miniimagenet', 'multidataset', 'multidataset_leave_one_out']:
+        if FLAGS.metatrain_iterations == 0 and FLAGS.datasource in ['miniimagenet', 'multidataset', 'multidataset_leave_one_out', 'CDFSL']:
             assert FLAGS.meta_batch_size == 1
             assert FLAGS.update_batch_size == 1
             data_generator = DataGenerator(1, FLAGS.meta_batch_size)  # only use one datapoint,
         else:
-            if FLAGS.datasource in ['miniimagenet', 'multidataset', 'multidataset_leave_one_out']:
+            if FLAGS.datasource in ['miniimagenet', 'multidataset', 'multidataset_leave_one_out', 'CDFSL']:
                 if FLAGS.train:
                     data_generator = DataGenerator(FLAGS.update_batch_size + 15,
                                                    FLAGS.meta_batch_size)  # only use one datapoint for testing to save memory
@@ -259,11 +259,11 @@ def main():
             else:
                 data_generator = DataGenerator(FLAGS.update_batch_size * 2,
                                                FLAGS.meta_batch_size)  # only use one datapoint for testing to save memory
-
+    print("Data_generator set")
     dim_output = data_generator.dim_output
     dim_input = data_generator.dim_input
 
-    if FLAGS.datasource in ['miniimagenet', 'omniglot', 'multidataset', 'multidataset_leave_one_out']:
+    if FLAGS.datasource in ['miniimagenet', 'omniglot', 'multidataset', 'multidataset_leave_one_out', 'CDFSL']:
         tf_data_load = True
         num_classes = data_generator.num_classes
 
@@ -273,7 +273,7 @@ def main():
                 image_tensor, label_tensor = data_generator.make_data_tensor()
             elif FLAGS.datasource == 'multidataset':
                 image_tensor, label_tensor = data_generator.make_data_tensor_multidataset()
-            elif FLAGS.datasource == 'multidataset_leave_one_out':
+            elif FLAGS.datasource in ['multidataset_leave_one_out', 'CDFSL']:
                 image_tensor, label_tensor = data_generator.make_data_tensor_multidataset_leave_one_out()
             inputa = tf.slice(image_tensor, [0, 0, 0], [-1, num_classes * FLAGS.update_batch_size, -1])
             inputb = tf.slice(image_tensor, [0, num_classes * FLAGS.update_batch_size, 0], [-1, -1, -1])
@@ -286,7 +286,7 @@ def main():
             image_tensor, label_tensor = data_generator.make_data_tensor(train=False)
         elif FLAGS.datasource == 'multidataset':
             image_tensor, label_tensor = data_generator.make_data_tensor_multidataset(train=False)
-        elif FLAGS.datasource == 'multidataset_leave_one_out':
+        elif FLAGS.datasource in ['multidataset_leave_one_out', 'CDFSL']:
             image_tensor, label_tensor = data_generator.make_data_tensor_multidataset_leave_one_out(train=False)
         inputa = tf.slice(image_tensor, [0, 0, 0], [-1, num_classes * FLAGS.update_batch_size, -1])
         inputb = tf.slice(image_tensor, [0, num_classes * FLAGS.update_batch_size, 0], [-1, -1, -1])
@@ -296,16 +296,16 @@ def main():
     else:
         tf_data_load = False
         input_tensors = None
-
+    print("Set model")
     model = MAML(sess, dim_input, dim_output, test_num_updates=test_num_updates)
-
+    
     if FLAGS.train or not tf_data_load:
         model.construct_model(input_tensors=input_tensors, prefix='metatrain_')
     if tf_data_load:
         model.construct_model(input_tensors=metaval_input_tensors, prefix='metaval_')
     model.summ_op = tf.summary.merge_all()
     saver = loader = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES), max_to_keep=10)
-
+    print("Model set")
     if FLAGS.train == False:
         # change to original meta batch size when loading model.
         FLAGS.meta_batch_size = orig_meta_batch_size
@@ -341,7 +341,7 @@ def main():
 
     tf.global_variables_initializer().run()
     tf.train.start_queue_runners()
-
+    print("exp_string")
     print(exp_string)
 
     if FLAGS.resume or not FLAGS.train:
@@ -357,8 +357,10 @@ def main():
             saver.restore(sess, model_file)
 
     if FLAGS.train:
+        print("Start training")
         train(model, saver, sess, exp_string, data_generator, resume_itr)
     else:
+        print("Start testing")
         test(model, saver, sess, exp_string, data_generator, test_num_updates)
 
 

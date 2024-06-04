@@ -12,7 +12,9 @@ FLAGS = flags.FLAGS
 ## Image helper
 def get_images(paths, labels, nb_samples=None, shuffle=True):
     if nb_samples is not None:
-        sampler = lambda x: random.sample(x, nb_samples)
+        # sampler = lambda x: random.sample(x, nb_samples)
+        # TEMP
+        sampler = lambda x: random.choices(x, k=nb_samples)
     else:
         sampler = lambda x: x
     images = [(i, os.path.join(path, image)) \

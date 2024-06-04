@@ -63,8 +63,7 @@ class TreeLSTM(object):
         self.cluster_layer_2 = FLAGS.cluster_layer_2
 
     def model(self, inputs):
-
-        if FLAGS.datasource == 'multidataset' or FLAGS.datasource == 'miniimagenet' or FLAGS.datasource == 'multidataset_leave_one_out':
+        if FLAGS.datasource in ['multidataset', 'miniimagenet', 'multidataset_leave_one_out', 'CDFSL']:
             sigma = 10.0
         elif FLAGS.datasource in ['sinusoid', 'mixture']:
             sigma = 2.0

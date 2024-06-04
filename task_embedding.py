@@ -24,7 +24,7 @@ class LSTMAutoencoder(object):
             self.elem_num_init = 2
             self.elem_num=20
 
-        elif FLAGS.datasource in ['miniimagenet', 'omniglot','multidataset', 'multidataset_leave_one_out']:
+        elif FLAGS.datasource in ['miniimagenet', 'omniglot','multidataset', 'multidataset_leave_one_out', 'CDFSL']:
             self.elem_num = FLAGS.num_classes + 64
 
         self.dec_weight = tf.Variable(tf.truncated_normal([self.hidden_num,
@@ -89,7 +89,7 @@ class MeanAutoencoder(object):
         if FLAGS.datasource in ['sinusoid', 'mixture']:
             self.elem_num = 2
             self.hidden_num_mid = 20
-        elif FLAGS.datasource in ['miniimagenet', 'omniglot','multidataset', 'multidataset_leave_one_out']:
+        elif FLAGS.datasource in ['miniimagenet', 'omniglot','multidataset', 'multidataset_leave_one_out', 'CDFSL']:
             self.elem_num = FLAGS.num_classes + 64
             self.hidden_num_mid = 96
 

@@ -169,6 +169,56 @@ class DataGenerator(object):
             self.metaval_character_folders = metaval_folders
             self.rotations = config.get('rotations', [0])
 
+        elif FLAGS.datasource == 'CDFSL':
+            self.num_classes = config.get('num_classes', FLAGS.num_classes)
+            self.img_size = config.get('img_size', (84, 84))
+            self.dim_input = np.prod(self.img_size) * 3
+            self.dim_output = self.num_classes
+            # self.multidataset = ['CUB_Bird', 'DTD_Texture', 'FGVC_Aircraft', 'FGVCx_Fungi']
+            self.multidataset = ["CUB_200_2011", "cars_cdfsl", "places_cdfsl", "plantae_cdfsl", "miniimagenet"]
+            metatrain_folders, metaval_folders = [], []
+            for idx_data, eachdataset in enumerate(self.multidataset):
+                if idx_data == FLAGS.leave_one_out_id:
+                    continue
+                metatrain_folders.append(
+                    [os.path.join('{0}/meta-dataset-leave-one-out/{1}/train'.format(FLAGS.datadir, eachdataset), label) \
+                     for label in
+                     os.listdir('{0}/meta-dataset-leave-one-out/{1}/train'.format(FLAGS.datadir, eachdataset)) \
+                     if
+                     os.path.isdir(
+                         os.path.join('{0}/meta-dataset-leave-one-out/{1}/train'.format(FLAGS.datadir, eachdataset),
+                                      label)) \
+                     ])
+            if FLAGS.test_set:
+                metaval_folders = [os.path.join('{0}/meta-dataset-leave-one-out/{1}/train'.format(FLAGS.datadir,
+                                                                                                  self.multidataset[
+                                                                                                      FLAGS.leave_one_out_id]),
+                                                label) \
+                                   for label in os.listdir(
+                        '{0}/meta-dataset-leave-one-out/{1}/train'.format(FLAGS.datadir,
+                                                                          self.multidataset[FLAGS.leave_one_out_id])) \
+                                   if os.path.isdir(
+                        os.path.join('{0}/meta-dataset-leave-one-out/{1}/train'.format(FLAGS.datadir, self.multidataset[
+                            FLAGS.leave_one_out_id]), label)) \
+                                   ]
+            else:
+                metaval_folders = [os.path.join('{0}/meta-dataset-leave-one-out/{1}/val'.format(FLAGS.datadir,
+                                                                                                self.multidataset[
+                                                                                                    FLAGS.leave_one_out_id]),
+                                                label) \
+                                   for label in os.listdir(
+                        '{0}/meta-dataset-leave-one-out/{1}/val'.format(FLAGS.datadir,
+                                                                        self.multidataset[FLAGS.leave_one_out_id])) \
+                                   if os.path.isdir(
+                        os.path.join('{0}/meta-dataset-leave-one-out/{1}/val'.format(FLAGS.datadir,
+                                                                                     self.multidataset[
+                                                                                         FLAGS.leave_one_out_id]),
+                                     label)) \
+                                   ]
+            self.metatrain_character_folders = metatrain_folders
+            self.metaval_character_folders = metaval_folders
+            self.rotations = config.get('rotations', [0])
+
         else:
             raise ValueError('Unrecognized data source')
 
@@ -361,7 +411,7 @@ class DataGenerator(object):
         print('Generating image processing ops')
         image_reader = tf.WholeFileReader()
         _, image_file = image_reader.read(filename_queue)
-        if FLAGS.datasource in ['miniimagenet', 'multidataset', 'multidataset_leave_one_out']:
+        if FLAGS.datasource in ['miniimagenet', 'multidataset', 'multidataset_leave_one_out', 'CDFSL']:
             image = tf.image.decode_jpeg(image_file, channels=3)
             image.set_shape((self.img_size[0], self.img_size[1], 3))
             image = tf.reshape(image, [self.dim_input])
