@@ -249,6 +249,7 @@ class DataGenerator(object):
         print('Generating image processing ops')
         image_reader = tf.WholeFileReader()
         _, image_file = image_reader.read(filename_queue)
+
         if FLAGS.datasource == 'miniimagenet':
             image = tf.image.decode_jpeg(image_file, channels=3)
             image.set_shape((self.img_size[0], self.img_size[1], 3))
@@ -282,6 +283,7 @@ class DataGenerator(object):
                 rotations = tf.multinomial(tf.log([[1., 1., 1., 1.]]), self.num_classes)
             label_batch = tf.convert_to_tensor(labels)
             new_list, new_label_list = [], []
+
             for k in range(self.num_samples_per_class):
                 class_idxs = tf.range(0, self.num_classes)
                 class_idxs = tf.random_shuffle(class_idxs)
@@ -385,7 +387,8 @@ class DataGenerator(object):
         if train:
             folders = self.metatrain_character_folders
             # number of tasks, not number of meta-iterations. (divide by metabatch size to measure)
-            num_total_batches = 200000
+            # num_total_batches = 200000
+            num_total_batches = 100
         else:
             folders = self.metaval_character_folders
             num_total_batches = FLAGS.num_test_task
@@ -411,8 +414,10 @@ class DataGenerator(object):
         print('Generating image processing ops')
         image_reader = tf.WholeFileReader()
         _, image_file = image_reader.read(filename_queue)
+        
         if FLAGS.datasource in ['miniimagenet', 'multidataset', 'multidataset_leave_one_out', 'CDFSL']:
             image = tf.image.decode_jpeg(image_file, channels=3)
+            image = tf.image.resize_images(image, [self.img_size[0], self.img_size[1]])
             image.set_shape((self.img_size[0], self.img_size[1], 3))
             image = tf.reshape(image, [self.dim_input])
             image = tf.cast(image, tf.float32) / 255.0

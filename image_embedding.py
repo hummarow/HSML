@@ -32,7 +32,7 @@ class ImageEmbedding(object):
                           name='norm2')
         pool2 = tf.nn.max_pool(norm2, ksize=[1, 3, 3, 1],
                                strides=[1, 2, 2, 1], padding='SAME', name='pool2')
-
+                               
         with tf.variable_scope('local3', reuse=tf.AUTO_REUSE):
             image_reshape = tf.reshape(pool2, [images.get_shape().as_list()[0], -1])
             dim = image_reshape.get_shape()[1].value

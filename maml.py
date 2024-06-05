@@ -106,6 +106,7 @@ class MAML:
                 if FLAGS.datasource in ['sinusoid', 'mixture']:
                     input_task_emb = tf.concat((inputa, labela), axis=-1)
                 elif FLAGS.datasource in ['miniimagenet', 'omniglot', 'multidataset', 'multidataset_leave_one_out', 'CDFSL']:
+            
                     if FLAGS.fix_embedding_sample != -1:
                         input_task_emb = self.image_embed.model(tf.reshape(inputa[:FLAGS.fix_embedding_sample],
                                                                            [-1, self.img_size, self.img_size,
@@ -130,6 +131,7 @@ class MAML:
                     eta = []
                     for key in weights.keys():
                         weight_size = np.prod(weights[key].get_shape().as_list())
+                
                         eta.append(tf.reshape(
                             tf.layers.dense(task_enhanced_emb_vec, weight_size, activation=tf.nn.sigmoid,
                                             name='eta_{}'.format(key)), tf.shape(weights[key])))
@@ -292,6 +294,7 @@ class MAML:
 
     def forward_conv(self, inp, weights, reuse=False, scope=''):
         channels = self.channels
+
         inp = tf.reshape(inp, [-1, self.img_size, self.img_size, channels])
 
         hidden1 = conv_block(inp, weights['conv1'], weights['b1'], reuse, scope + '0')

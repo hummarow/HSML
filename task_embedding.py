@@ -11,8 +11,10 @@ import ipdb
 class LSTMAutoencoder(object):
     def __init__(self, hidden_num, cell=None, reverse=True, decode_without_input=False):
         if cell is None:
-            self._enc_cell = GRUCell(hidden_num, name='encoder_cell')
-            self._dec_cell = GRUCell(hidden_num, name='decoder_cell')
+#             self._enc_cell = GRUCell(hidden_num, name='encoder_cell')
+#             self._dec_cell = GRUCell(hidden_num, name='decoder_cell')
+            self._enc_cell = GRUCell(hidden_num)
+            self._dec_cell = GRUCell(hidden_num)
         else:
             self._enc_cell = cell
             self._dec_cell = cell

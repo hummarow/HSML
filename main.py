@@ -58,7 +58,7 @@ flags.DEFINE_integer('cluster_layer_2', -1, 'number of clusters in the third lay
 ## Logging, saving, and testing options
 flags.DEFINE_bool('log', True, 'if false, do not log summaries, for debugging code.')
 flags.DEFINE_string('logdir', './tmp/data', 'directory for summaries and checkpoints.')
-flags.DEFINE_string('datadir', '/data/bjk_data', 'directory for datasets.')
+flags.DEFINE_string('datadir', '/home/bjk/', 'directory for datasets.')
 flags.DEFINE_bool('resume', True, 'resume training if there is a model available')
 flags.DEFINE_bool('train', True, 'True to train, False to test.')
 flags.DEFINE_bool('test_set', False, 'Set to true to test on the the test set, False for the validation set.')
@@ -93,13 +93,13 @@ def train(model, saver, sess, exp_string, data_generator, resume_itr=0):
                 batch_x, batch_y, amp, phase = data_generator.generate()
             elif FLAGS.datasource == 'mixture':
                 batch_x, batch_y, para_func, sel_set = data_generator.generate()
-
+            
             inputa = batch_x[:, :num_classes * FLAGS.update_batch_size, :]
             labela = batch_y[:, :num_classes * FLAGS.update_batch_size, :]
             inputb = batch_x[:, num_classes * FLAGS.update_batch_size:, :]
             labelb = batch_y[:, num_classes * FLAGS.update_batch_size:, :]
             feed_dict = {model.inputa: inputa, model.inputb: inputb, model.labela: labela, model.labelb: labelb}
-
+        
         if itr < FLAGS.pretrain_iterations:
             input_tensors = [model.pretrain_op]
         else:
@@ -109,9 +109,9 @@ def train(model, saver, sess, exp_string, data_generator, resume_itr=0):
             [model.summ_op, model.total_embed_loss, model.total_loss1, model.total_losses2[FLAGS.num_updates - 1]])
         if model.classification:
             input_tensors.extend([model.total_accuracy1, model.total_accuracies2[FLAGS.num_updates - 1]])
-
+        
         result = sess.run(input_tensors, feed_dict)
-
+        print('got result')
         if np.isnan(result[-2]) == False and np.isnan(result[-2]) == False and np.isnan(result[2]) == False:
             prelosses.append(result[-2])
             postlosses.append(result[-1])
